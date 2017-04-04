@@ -195,7 +195,7 @@ version_count(VALUE self)
  *
  **/
 static VALUE
-install(VALUE self, VALUE *argv, VALUE self)
+install(int argc, VALUE *argv, VALUE self)
 {
   if (!config_system_initialized()) {
     rb_raise(e_mDebianAptPkgInitError, "System not initialized");
@@ -205,7 +205,7 @@ install(VALUE self, VALUE *argv, VALUE self)
     rb_raise(rb_eArgError, "You must give at least one pacakge to install");
   }
   
-  return True;
+  return true;
 }
  
 
