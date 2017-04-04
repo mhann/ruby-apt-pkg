@@ -100,6 +100,21 @@ pkg_names(int argc, VALUE *argv, VALUE self)
   if (!config_system_initialized()) {
     rb_raise(e_mDebianAptPkgInitError, "System not initialized");
   }
+  
+  /*
+   * Why are we limiting to one argument here?
+   *  According to http://stackoverflow.com/questions/24829572/using-rb-define-singleton-method-in-c-or-c
+   *  We would be better changing the function mapping below from:
+   *
+   *      rb_define_singleton_method(rb_mDebianAptPkgCache, "pkg_names",
+   *                                 RUBY_METHOD_FUNC(pkg_names), -1);
+   *  To:
+   *      rb_define_singleton_method(rb_mDebianAptPkgCache, "pkg_names",
+   *                                 RUBY_METHOD_FUNC(pkg_names), 1);
+   *
+   *  This way ruby limits the number of arguments to the function rather than us having to handle this ourselves.
+   *  It also makes it obvious that we are only handling a max of one argument and that we are not expecting to process multiple arguments.
+   */
   if (argc > 1 || argc == 0) {
     rb_raise(rb_eArgError, "You must give at least one search argument");
   }
@@ -170,6 +185,29 @@ version_count(VALUE self)
   }
   return INT2FIX(Cache->HeaderP->VersionCount);
 }
+
+/*
+ * call-seq: install -> int, nil
+ *
+ * Shortcut method to install a package.
+ *
+ *   Debian::AptPkg::PkgCache.install # => true/false
+ *
+ **/
+static VALUE
+install(VALUE self, VALUE *argv, VALUE self)
+{
+  if (!config_system_initialized()) {
+    rb_raise(e_mDebianAptPkgInitError, "System not initialized");
+  }
+  
+  if (argc > 1 || argc == 0) {
+    rb_raise(rb_eArgError, "You must give at least one pacakge to install");
+  }
+  
+  return True;
+}
+ 
 
 /*
  * call-seq: depends_count() -> int, nil
@@ -321,4 +359,6 @@ init_apt_pkg_pkgcache()
                              RUBY_METHOD_FUNC(provides_count), 0);
   rb_define_singleton_method(rb_mDebianAptPkgCache, "group_count",
                              RUBY_METHOD_FUNC(group_count), 0);
+  rb_define_singleton_method(rb_mDebianAptPkgCache, "install",
+                             RUBY_METHOD_FUNC(install), -1);
 }
